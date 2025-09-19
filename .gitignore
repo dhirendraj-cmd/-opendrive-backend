@@ -1,0 +1,65 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environment
+venv/
+env/
+.venv/
+ENV/
+
+# Environment variables
+.env
+*.env
+
+# Byte-compiled / optimized / DLL files
+*.pyc
+*.pyo
+*.pyd
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Unit test / coverage reports
+.coverage
+*.cover
+htmlcov/
+.tox/
+.nox/
+.cache
+.pytest_cache/
+
+# MyPy & Pylint
+.mypy_cache/
+.dmypy.json
+dmypy.json
+pylint.log
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Database (SQLite or others)
+*.db
+*.sqlite3
