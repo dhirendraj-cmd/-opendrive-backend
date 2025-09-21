@@ -25,15 +25,15 @@ async def create_upload_file(files: Annotated[list[UploadFile], File()]):
     return save_files
 
 
-@upload_router.get("/", response_class=HTMLResponse)
-async def show_file_form():
-    content = """
-                <body>
-                <form action="/uploadfiles/" enctype="multipart/form-data" method="post">
-                <input name="files" type="file" multiple>
-                <input type="submit">
-                </form>
-                </body>
-            """ 
+# @upload_router.get("/", response_class=HTMLResponse)
+# async def show_file_form():
+#     content = """
+#                 <body>
+#                 <form action="/uploadfiles/" enctype="multipart/form-data" method="post">
+#                 <input name="files" type="file" multiple>
+#                 <input type="submit">
+#                 </form>
+#                 </body>
+#             """ 
     
-    return HTMLResponse(content=content)
+#     return HTMLResponse(content=content)
