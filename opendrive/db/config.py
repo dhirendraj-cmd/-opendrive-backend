@@ -1,24 +1,26 @@
 import os
 from fastapi import Depends
-from typing import Annotated
+from typing import Annotated, ClassVar
 from sqlmodel import SQLModel, Session, create_engine
-from pydantic_settings import BaseSettings
-from decouple import config
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DOTENV_PATH = os.path.join(BASE_DIR, '.env')
 
-# DB_USER=config('DB_USER')
-# DB_PASS=config('DB_PASS')
-# DB_NAME=config('DB_NAME')
-# DB_HOST=config('DB_HOST')
-# DB_PORT=config('DB_PORT')
 
-# class Settings(BaseSettings):
+class Settings(BaseSettings):
+    DATABASE_URL: str
 
-DATABASE_URL = config("DATABASE_URL")
+    model_config = SettingsConfigDict(
+        env_file=DOTENV_PATH,
+        env_file_encoding="utf-8"
+    )
 
-engine = create_engine(DATABASE_URL, echo=True)
+
+settings = Settings()
+
+engine = create_engine(settings.DATABASE_URL, echo=True)
 
 
 def create_tables():
