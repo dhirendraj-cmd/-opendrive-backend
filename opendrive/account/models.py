@@ -48,7 +48,6 @@ class RefreshToken(SQLModel, table=True):
 
 
 class User(UserBase, table=True):
-    __table_args__ = (UniqueConstraint("email", "username"),)
     id: int = Field(default=None, primary_key=True)
     hashed_password: str
     created_at: datetime = Field(default_factory=now_utc)
@@ -57,7 +56,7 @@ class User(UserBase, table=True):
     # back populate to refresh token
     refresh_tokens: List[RefreshToken] = Relationship(back_populates="user")
 
-    __table_args__ = (UniqueConstraint("email"), UniqueConstraint("username"))
+    # __table_args__ = (UniqueConstraint("email"), UniqueConstraint("username"))
 
 
 
