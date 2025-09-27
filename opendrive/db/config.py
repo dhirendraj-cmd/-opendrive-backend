@@ -15,10 +15,10 @@ DOTENV_PATH = os.path.join(BASE_DIR, '.env')
 
 # generate secret key function if secret key not present
 def generate_secret_if_not_present():
-    # here we generate secret key if not there and pass it in our other modules
+    # here we generate secret key if not there and pass it in our other modules if not env_file or "SECRET_KEY" not in open(DOTENV_PATH).read():
     env_file = find_dotenv(DOTENV_PATH)
-    if not env_file or not os.getenv("SECRET_KEY"):
-        secret=secrets.token_hex(32)
+    if not env_file or not os.getenv("SECRET_KEY") or "SECRET_KEY" not in open(DOTENV_PATH).read():
+        secret=secrets.token_urlsafe(32)
         with open(DOTENV_PATH, "a") as out:
             out.write(f"\nSECRET_KEY={secret}\n")
         print("new secret key is generated and added")
