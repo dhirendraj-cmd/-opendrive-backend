@@ -4,7 +4,10 @@ from typing import Annotated
 import os
 import shutil
 
-upload_router = APIRouter()
+upload_router = APIRouter(
+    prefix="/upload",
+    tags=["Upload Files"]
+)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

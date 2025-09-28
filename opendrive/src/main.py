@@ -1,8 +1,11 @@
 from fastapi import FastAPI
-from opendrive.uploaders.upload_routes import upload_router
-from fastapi.middleware.cors import CORSMiddleware
-from opendrive.db.config import create_tables, engine, SessionDependency
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
+
+# custom imports
+from opendrive.uploaders.upload_routes import upload_router
+from opendrive.account.routers import router as auth_router
+from opendrive.db.config import create_tables, engine, SessionDependency
 
 
 @asynccontextmanager
@@ -14,9 +17,10 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(upload_router)
+app.include_router(auth_router)
 
 origins = [
-    "*"
+    "your_api"
 ]
 
 app.add_middleware(
