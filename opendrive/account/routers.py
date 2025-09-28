@@ -6,7 +6,7 @@ from opendrive.account.utils import create_tokens, verify_refresh_token
 from opendrive.account.dependencies import get_current_user, get_all_user
 
 # built in imports
-from typing import Annotated
+from typing import Annotated, List
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import APIRouter, HTTPException, Query, Depends, Request, status
@@ -17,7 +17,7 @@ router = APIRouter(
     tags=["Account"]
 )
 
-@router.get("/users", response_model=UserOut)
+@router.get("/users", response_model=List[UserOut])
 def get_all_users(all_users=Depends(get_all_user)):
     return all_users
 
