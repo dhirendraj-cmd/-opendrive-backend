@@ -10,7 +10,7 @@ def now_utc():
 class UserBase(SQLModel):
     name: str
     email: str = Field(unique=True, index=True)
-    username: str = Field(unique=True, index=True)
+    username: str = Field(min_length=3, unique=True, index=True)
     is_active: bool = Field(default=False)
     is_verified: bool = Field(default=False)
                             
