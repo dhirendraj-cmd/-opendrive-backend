@@ -16,19 +16,19 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.include_router(upload_router)
-app.include_router(auth_router)
 
 origins = [
-    "your_api"
+    "FRONT_END_URL",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],     # Allows all standard HTTP methods (GET, POST, PUT, DELETE, etc.)
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
+app.include_router(upload_router)
+app.include_router(auth_router)
 

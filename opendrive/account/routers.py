@@ -9,7 +9,7 @@ from opendrive.account.dependencies import get_current_user, get_all_user
 from typing import Annotated, List
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi import APIRouter, HTTPException, Query, Depends, Request, status
+from fastapi import APIRouter, HTTPException, Depends, Request, status
 
 
 router = APIRouter(
@@ -17,19 +17,19 @@ router = APIRouter(
     tags=["Account"]
 )
 
-@router.get("/users", response_model=List[UserOut])
-def get_all_users(all_users=Depends(get_all_user)):
-    return all_users
+# @router.get("/users", response_model=List[UserOut])
+# def get_all_users(all_users=Depends(get_all_user)):
+#     return all_users
 
 
 # register user endpoint
-@router.post("/register", response_model=UserOut)
+@router.post("/register/", response_model=UserOut)
 def register_user(session: SessionDependency, user: UserCreate):
     return create_user(session, user)
 
 
 # user login
-@router.post("/login")
+@router.post("/login/")
 def login_user(session: SessionDependency, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     user = authenticate_user(session, form_data.username, form_data.password)
     if not user:
@@ -54,12 +54,22 @@ def refresh_token(session: SessionDependency, request: Request):
     user = verify_refresh_token(session, token)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
-    return create_tokens(session, user)
+    # return create_tokens(session, user)
+
+    # creating new access n refrsh token
+    tokens = create_tokens(session=session, user=user)
+
+    # setting new refresh cookie
+    response = JSONResponse(content={
+        "access_token": tokens["access_token"]
+    })
+    response.set_cookie("refresh_token", tokens["refresh_token"], httponly=True, secure=True, samesite="lax", max_age=60*60*24*7)
+    return response
 
 
 # logged in user
 @router.get("/me", response_model=UserOut)
-def loggedin_user(user = Depends(get_current_user)):
+def loggedin_user(user = Depends(get_current_user)): # type: ignore
     return user
 
 

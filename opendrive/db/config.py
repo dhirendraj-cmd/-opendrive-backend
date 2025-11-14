@@ -1,6 +1,6 @@
 import os, secrets
 from fastapi import Depends
-from typing import Annotated, ClassVar
+from typing import Annotated
 from sqlmodel import SQLModel, Session, create_engine
 from pydantic_settings import BaseSettings, SettingsConfigDict
 

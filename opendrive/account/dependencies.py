@@ -53,7 +53,7 @@ def upload_file_loggedin_user(files: Annotated[list[UploadFile], File()], sessio
         save_path = f"{file_path}/{file.filename}"
         with open(save_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-        save_files.append({"filename": file.filename})
+        save_files.append({"filename": file.filename}) # type: ignore
 
     return save_files
 
