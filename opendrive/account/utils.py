@@ -4,10 +4,13 @@ from jose import JWTError, jwt
 from sqlmodel import Session, select
 from passlib.context import CryptContext
 from datetime import datetime , timezone, timedelta
+from typing import Any, Dict
 
 # custom imports
+import os
 from opendrive.db.config import settings
 from opendrive.account.models import RefreshToken, User
+from fastapi import Response
 
 
 SECRET_KEY=settings.SECRET_KEY
@@ -22,12 +25,12 @@ def hash_password(password: str):
     return bcrypt_context.hash(password)
 
 
-def verify_password(plain_password, hashed_password):
+def verify_password(plain_password: str, hashed_password: str):
     return bcrypt_context.verify(plain_password, hashed_password)
 
 
 # creation of acess tokens
-def create_access_token(data: dict, expires_delta: timedelta = None):
+def create_access_token(data: Dict[str, Any], expires_delta: timedelta | None = None):
     to_encode=data.copy()
     expire = now_utc() + (expires_delta or timedelta(minutes=20))
     to_encode.update({
@@ -64,14 +67,28 @@ def verify_refresh_token(session: Session, token: str):
     stmt = select(RefreshToken).where(RefreshToken.token == token)
     db_token = session.exec(stmt).first()
 
-    if db_token and not db_token.revoked:
-        expires_at = db_token.expires_at
-        if expires_at.tzinfo is None:
-            expires_at=expires_at.replace(tzinfo=timezone.utc)
-        if expires_at > now_utc():
-            stmt1 = select(User).where(User.id == db_token.user_id)
-            return session.exec(stmt1).first()
-    return None
+    if not db_token or db_token.revoked:
+        return None, None
+    
+    expires_at = db_token.expires_at
+
+    if expires_at.tzinfo is None:
+        expires_at=expires_at.replace(tzinfo=timezone.utc)
+
+    if expires_at <= now_utc():
+        return None, None
+
+    user = session.exec(select(User).where(User.id == db_token.user_id)).first()
+    return user, db_token
+
+    # if db_token and not db_token.revoked:
+    #     expires_at = db_token.expires_at
+    #     if expires_at.tzinfo is None:
+    #         expires_at=expires_at.replace(tzinfo=timezone.utc)
+    #     if expires_at > now_utc():
+    #         stmt1 = select(User).where(User.id == db_token.user_id)
+    #         return session.exec(stmt1).first()
+    # return None
 
 
 def decode_token(token: str):
@@ -82,6 +99,45 @@ def decode_token(token: str):
 
 
 
+def set_refresh_cookie(response: Response, token: str):
+    """
+    Sets refresh token cookie with correct security settings
+    depending on environment.
+    """
+
+    ENV = os.getenv("ENV", "local").lower()
+
+    # Default values
+    secure = False
+    samesite = "lax"
+    domain = None
+
+    if ENV == "local":
+        # for localhost → HTTP only
+        secure = False
+        samesite = "lax"
+
+    elif ENV == "staging":
+        # staging → HTTPS enabled
+        secure = True
+        samesite = "none"
+        domain = os.getenv("COOKIE_DOMAIN")
+
+    elif ENV == "production":
+        # prod → HTTPS likely enabled
+        secure = True
+        samesite = "none"
+        domain = os.getenv("COOKIE_DOMAIN")
+
+    response.set_cookie(
+        key="refresh_token",
+        value=token,
+        httponly=True,
+        secure=secure,
+        samesite=samesite,
+        domain=domain,
+        max_age=60 * 60 * 24 * 7,  # 7 days
+    )
 
 
 

@@ -32,8 +32,7 @@ class UserOut(UserBase):
     id: int
     created_at: datetime
     upated_at: datetime
-
-
+    
 
 class RefreshToken(SQLModel, table=True):
     id: int = Field(primary_key=True, default=None)

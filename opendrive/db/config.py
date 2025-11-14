@@ -33,8 +33,11 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     ALGORITHM: str
     SECRET_KEY: str
+    ENV: str | None = None
+    DEBUG: bool | None = None
 
     model_config = SettingsConfigDict(
+        extra="forbid",
         env_file=DOTENV_PATH,
         env_file_encoding="utf-8"
     )
