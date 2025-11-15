@@ -1,6 +1,6 @@
 # builtin imports
 import os
-from typing import Annotated, List
+from typing import List
 from fastapi import APIRouter, Depends, status
 
 # custom imports

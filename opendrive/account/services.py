@@ -1,7 +1,7 @@
 from sqlmodel import Session, select
 from fastapi import HTTPException, status
 from opendrive.account.utils import hash_password, verify_password
-from opendrive.account.models import User, UserCreate, RefreshToken
+from opendrive.account.models import User, UserCreate
 
 
 def create_user(session: Session, user: UserCreate):

@@ -1,13 +1,12 @@
 # custom imports
 from opendrive.db.config import SessionDependency
 from opendrive.account.services import create_user, authenticate_user
-from opendrive.account.models import User, UserCreate, UserOut, RefreshToken
+from opendrive.account.models import User, UserCreate, UserOut, RefreshToken, LoginInputSchema
 from opendrive.account.utils import create_tokens, verify_refresh_token, set_refresh_cookie
 from opendrive.account.dependencies import get_current_user
 
 # built in imports
-from typing import Annotated
-from fastapi.security import OAuth2PasswordRequestForm
+# from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import APIRouter, HTTPException, Depends, Request, status, Response
 from sqlmodel import select
 
@@ -30,7 +29,8 @@ def register_user(session: SessionDependency, user: UserCreate):
 
 # user login
 @router.post("/login/")
-def login_user(response: Response, session: SessionDependency, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+# def login_user(response: Response, session: SessionDependency, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+def login_user(response: Response, session: SessionDependency, form_data: LoginInputSchema):
     user = authenticate_user(session, form_data.username, form_data.password)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials!")
@@ -38,8 +38,6 @@ def login_user(response: Response, session: SessionDependency, form_data: Annota
     tokens = create_tokens(session, user)
 
     set_refresh_cookie(response, tokens["refresh_token"])
-
-    print("SETTING COOKIE>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>:", tokens["refresh_token"])
 
     return {"access_token": tokens["access_token"]}
 
@@ -72,10 +70,10 @@ def loggedin_user(user: User = Depends(get_current_user)):
     return user
 
 
+# logout end point
 @router.post("/logout/")
 def logout_user(response: Response, session: SessionDependency, request: Request, current_user: User = Depends(get_current_user)):
     
-    print("CALLING LOGOUT>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ")
     if not current_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -85,21 +83,16 @@ def logout_user(response: Response, session: SessionDependency, request: Request
     # get refresh token from cookies
     token = request.cookies.get("refresh_token")
 
-    print("REFRESH COOKIE VALUE>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>:", repr(token))
-
     if token:
         # revoke refrsh token from db
         stmt = select(RefreshToken).where(RefreshToken.token == token)
         db_token = session.exec(stmt).first()
 
-        print("DB TOKEN FOUND>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>:", db_token)
         
         if db_token:
-            print("DB TOKEN BEFORE>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>:", db_token.revoked)
             db_token.revoked = True
             session.add(db_token)
             session.commit()
-            print("DB TOKEN AFTER>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>:", db_token.revoked)
 
     response.delete_cookie(key="refresh_token")
     return {

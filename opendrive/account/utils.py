@@ -100,10 +100,6 @@ def decode_token(token: str):
 
 
 def set_refresh_cookie(response: Response, token: str):
-    """
-    Sets refresh token cookie with correct security settings
-    depending on environment.
-    """
 
     ENV = os.getenv("ENV", "local").lower()
 

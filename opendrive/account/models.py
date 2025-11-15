@@ -1,6 +1,6 @@
 from datetime import timezone, datetime
-from typing import Optional, Annotated, List
-from sqlmodel import SQLModel, Field, Relationship, UniqueConstraint
+from typing import Optional, List
+from sqlmodel import SQLModel, Field, Relationship
 
 
 def now_utc():
@@ -32,6 +32,11 @@ class UserOut(UserBase):
     id: int
     created_at: datetime
     upated_at: datetime
+
+
+class LoginInputSchema(SQLModel):
+    username: str
+    password: str
     
 
 class RefreshToken(SQLModel, table=True):
