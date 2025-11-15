@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # custom imports
 from opendrive.uploaders.upload_routes import upload_router
 from opendrive.account.routers import router as auth_router
-from opendrive.db.config import create_tables, engine, SessionDependency
+from opendrive.db.config import create_tables
 
 
 @asynccontextmanager
@@ -18,7 +18,7 @@ app = FastAPI(lifespan=lifespan)
 
 
 origins = [
-    "FRONT_END_URL",
+    "FRONTEND_URL"
 ]
 
 app.add_middleware(
