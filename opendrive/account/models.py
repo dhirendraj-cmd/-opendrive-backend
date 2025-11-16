@@ -1,10 +1,12 @@
-from datetime import timezone, datetime
+from datetime import datetime
 from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
 
 
-def now_utc():
-    return datetime.now(timezone.utc)
+
+from opendrive.uploaders.file_models import FileDataToBeStored
+from opendrive.helpers.helper import now_utc
+
 
 
 class UserBase(SQLModel):
@@ -41,7 +43,7 @@ class LoginInputSchema(SQLModel):
 
 class RefreshToken(SQLModel, table=True):
     id: int = Field(primary_key=True, default=None)
-    user_id: int = Field(foreign_key="user.id", nullable=False)
+    user_id: int = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
     token: str = Field(unique=True, index=True)
     expires_at: datetime
     created_at: datetime = Field(default_factory=now_utc)
@@ -58,9 +60,14 @@ class User(UserBase, table=True):
     upated_at: datetime = Field(default_factory=now_utc)
 
     # back populate to refresh token
-    refresh_tokens: List[RefreshToken] = Relationship(back_populates="user")
+    refresh_tokens: List[RefreshToken] = Relationship(back_populates="user", sa_relationship_kwargs={
+        "cascade": "all, delete"
+    })
 
-    # __table_args__ = (UniqueConstraint("email"), UniqueConstraint("username"))
+    # back populate to Upload Files model
+    files: List[FileDataToBeStored] = Relationship(back_populates="user", sa_relationship_kwargs={
+        "cascade": "all, delete"
+    })
 
 
 

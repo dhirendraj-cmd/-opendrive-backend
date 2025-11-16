@@ -7,18 +7,18 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status, UploadFile, File
 
 # custom import
-from opendrive.account.utils import decode_token
+from opendrive.helpers.helper import decode_token
 from opendrive.db.config import SessionDependency
 from opendrive.account.models import User
 
 
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl="account/login")
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl="/account/login/")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
-def get_all_user(session: SessionDependency):
-    all_users = session.exec(select(User)).all()
-    return all_users
+# def get_all_user(session: SessionDependency):
+#     all_users = session.exec(select(User)).all()
+#     return all_users
     
 
 def get_current_user(session: SessionDependency, token: Annotated[str, Depends(oauth2_bearer)]):

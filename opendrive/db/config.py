@@ -1,40 +1,26 @@
-import os, secrets
+import os
 from fastapi import Depends
 from typing import Annotated
 from sqlmodel import SQLModel, Session, create_engine
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 # import for secret_key
-from dotenv import load_dotenv, find_dotenv
+from dotenv import load_dotenv
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOTENV_PATH = os.path.join(BASE_DIR, '.env')
 
 
-# generate secret key function if secret key not present
-def generate_secret_if_not_present():
-    # here we generate secret key if not there and pass it in our other modules if not env_file or "SECRET_KEY" not in open(DOTENV_PATH).read():
-    env_file = find_dotenv(DOTENV_PATH)
-    if not env_file or not os.getenv("SECRET_KEY") or "SECRET_KEY" not in open(DOTENV_PATH).read():
-        secret=secrets.token_urlsafe(64)
-        with open(DOTENV_PATH, "a") as out:
-            out.write(f"\nSECRET_KEY={secret}\n")
-        print("new secret key is generated and added")
-
-
-# generate_secret_if_not_present()
-
 load_dotenv(DOTENV_PATH)
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str
-    ALGORITHM: str
-    SECRET_KEY: str
-    ENV: str | None = None
-    DEBUG: bool | None = None
+    DATABASE_URL: str 
+    ALGORITHM: str 
+    SECRET_KEY: str 
+    ENV: str = "local"
+    DEBUG: bool = True
 
     model_config = SettingsConfigDict(
         extra="forbid",
@@ -43,7 +29,7 @@ class Settings(BaseSettings):
     )
 
 
-settings = Settings()
+settings = Settings() # type: ignore
 
 engine = create_engine(settings.DATABASE_URL, echo=True)
 

@@ -2,8 +2,8 @@
 from opendrive.db.config import SessionDependency
 from opendrive.account.services import create_user, authenticate_user
 from opendrive.account.models import User, UserCreate, UserOut, RefreshToken, LoginInputSchema
-from opendrive.account.utils import create_tokens, verify_refresh_token, set_refresh_cookie
-from opendrive.account.dependencies import get_current_user
+from opendrive.helpers.helper import create_tokens, verify_refresh_token, set_refresh_cookie
+from opendrive.helpers.dependencies import get_current_user
 
 # built in imports
 # from fastapi.security import OAuth2PasswordRequestForm

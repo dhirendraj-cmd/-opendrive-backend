@@ -1,16 +1,21 @@
 # builtin imports
+from datetime import datetime , timezone, timedelta
+
+def now_utc():
+    return datetime.now(timezone.utc)
+
+
+import os
 import uuid
 from jose import JWTError, jwt
 from sqlmodel import Session, select
 from passlib.context import CryptContext
-from datetime import datetime , timezone, timedelta
 from typing import Any, Dict
+from fastapi import Response
 
 # custom imports
-import os
 from opendrive.db.config import settings
 from opendrive.account.models import RefreshToken, User
-from fastapi import Response
 
 
 SECRET_KEY=settings.SECRET_KEY
@@ -18,8 +23,6 @@ ALGORITHM=settings.ALGORITHM
 bcrypt_context=CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def now_utc():
-    return datetime.now(timezone.utc)
 
 def hash_password(password: str):
     return bcrypt_context.hash(password)
@@ -98,7 +101,7 @@ def decode_token(token: str):
         return None
 
 
-
+# Environment detection
 def set_refresh_cookie(response: Response, token: str):
 
     ENV = os.getenv("ENV", "local").lower()
@@ -134,7 +137,5 @@ def set_refresh_cookie(response: Response, token: str):
         domain=domain,
         max_age=60 * 60 * 24 * 7,  # 7 days
     )
-
-
 
 
