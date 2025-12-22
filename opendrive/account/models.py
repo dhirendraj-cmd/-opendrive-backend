@@ -4,7 +4,7 @@ from sqlmodel import SQLModel, Field, Relationship
 
 
 
-from opendrive.uploaders.file_models import FileDataToBeStored
+from opendrive.uploaders.file_models import FileDataToBeStored, Folder
 from opendrive.helpers.helper import now_utc
 
 
@@ -66,6 +66,10 @@ class User(UserBase, table=True):
 
     # back populate to Upload Files model
     files: List[FileDataToBeStored] = Relationship(back_populates="user", sa_relationship_kwargs={
+        "cascade": "all, delete"
+    })
+
+    folders: List["Folder"] = Relationship(back_populates="user", sa_relationship_kwargs={
         "cascade": "all, delete"
     })
 

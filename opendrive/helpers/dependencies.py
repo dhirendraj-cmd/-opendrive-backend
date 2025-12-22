@@ -1,24 +1,28 @@
 # inbuilt imports
 import os
-import shutil
+import shutil, traceback
 from typing import Annotated
 from sqlmodel import select
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status, UploadFile, File
 
+
 # custom import
 from opendrive.helpers.helper import decode_token
 from opendrive.db.config import SessionDependency
 from opendrive.account.models import User
+# from opendrive.uploaders.file_models import FileDataToBeStored
+from opendrive.helpers.helper import OS_home_directory
 
 
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="/account/login/")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+home = OS_home_directory()
 
 # def get_all_user(session: SessionDependency):
 #     all_users = session.exec(select(User)).all()
 #     return all_users
+
     
 
 def get_current_user(session: SessionDependency, token: Annotated[str, Depends(oauth2_bearer)]):
@@ -45,6 +49,24 @@ def get_current_user(session: SessionDependency, token: Annotated[str, Depends(o
     return user
 
 
+# def save_file_data_in_db(db: SessionDependency, file_name: str, file_size: int, mime_type: str, stored_path: str, user_id: int):
+#     file_data = FileDataToBeStored(
+#         file_name=file_name,
+#         file_size=file_size,
+#         mime_type=mime_type,
+#         stored_path=stored_path,
+#         user_id=user_id
+#     )
+
+#     db.add(file_data)
+#     db.commit()
+#     db.refresh(file_data)
+
+#     return file_data
+
+
+
+
 def upload_file_loggedin_user(files: Annotated[list[UploadFile], File()], session: SessionDependency, token: Annotated[str, Depends(oauth2_bearer)]):
     payload = decode_token(token=token)
     
@@ -53,29 +75,56 @@ def upload_file_loggedin_user(files: Annotated[list[UploadFile], File()], sessio
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="You need to be logged in to upload files"
         )
+
+    user = get_current_user(session=session, token=token)
     
-    upload_dir = os.path.join(BASE_DIR, "uploads")
+    upload_dir = os.path.join(home, str(user.id))
+
+    print("UPLOAD PATH >>>>>>>>>>>>>>>>>>", upload_dir)
     os.makedirs(upload_dir, exist_ok=True)
     
     save_files: list[dict[str, str]] = []
 
-    for file in files:
-        if not file.filename:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail= "Uploaded File has no filename"
-            )
-        
-        filename = os.path.basename(file.filename)
-        save_path = os.path.join(upload_dir, filename)
+    try:
+        for file in files:
+            print("file>>>>>>>> ", file.filename)
+            # print("file>>>>>>>> ", file.size)
+            print("file>>>>>>>> ", file.headers)
+            print("file>>>>>>>> ", file.content_type, file.content_type.split('/') if file.content_type else " ")
 
-        with open(save_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+            if not file.filename:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail= "Uploaded File has no filename"
+                )
+            
+            filename = os.path.basename(file.filename)
+            save_path = os.path.join(upload_dir, filename)
 
-        safe_name = os.path.basename(file.filename)
-        
-        save_files.append({"filename": safe_name})
+            with open(save_path, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
 
-    return save_files
+            safe_name = os.path.basename(file.filename)
+            
+            save_files.append({
+                "file_name": safe_name,
+                "file_size": safe_name,
+                "mime_type": safe_name,
+                "stored_path": safe_name,
+                
+                })
+            
+        print(save_files)
+
+        return save_files
+    
+    except Exception as e:
+        print("Error >>>>> ", e)
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail="File upload failed"
+        )
+    
 
     
