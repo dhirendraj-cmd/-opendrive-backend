@@ -12,6 +12,8 @@ from sqlmodel import Session, select
 from passlib.context import CryptContext
 from typing import Any, Dict
 from fastapi import Response
+from pathlib import Path
+
 
 # custom imports
 from opendrive.db.config import settings
@@ -138,4 +140,28 @@ def set_refresh_cookie(response: Response, token: str):
         max_age=60 * 60 * 24 * 7,  # 7 days
     )
 
+def OS_home_directory():
+    home = Path.home()
+    return home
+
+
+def create_storage(homeDir: str, content_type: str):
+    FILE_CATEGORY_MAP = {
+        "images": {
+            "jpg": "jpg",
+            "png": "png"
+        },
+        "media": {
+            "video": "video",
+            "audio": "audio",
+        },
+        "application": {
+            "pdf": "pdf",
+            "zip": "zip"
+        }
+    }
+
+    
+
+    
 
