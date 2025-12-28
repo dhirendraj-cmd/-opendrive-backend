@@ -1,6 +1,6 @@
 # inbuilt imports
 import os
-import shutil, traceback
+# import shutil, traceback
 from typing import Annotated
 from sqlmodel import select
 from fastapi.security import OAuth2PasswordBearer
@@ -13,6 +13,10 @@ from opendrive.db.config import SessionDependency
 from opendrive.account.models import User
 # from opendrive.uploaders.file_models import FileDataToBeStored
 from opendrive.helpers.helper import OS_home_directory
+# from opendrive.helpers.file_creations import FileCreation
+from opendrive.helpers.folder_creations import FolderCreations
+
+foc = FolderCreations()
 
 
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="/account/login/")
@@ -77,54 +81,14 @@ def upload_file_loggedin_user(files: Annotated[list[UploadFile], File()], sessio
         )
 
     user = get_current_user(session=session, token=token)
-    
-    upload_dir = os.path.join(home, str(user.id))
+    print("user.id>>>>>> ", user.id)
 
-    print("UPLOAD PATH >>>>>>>>>>>>>>>>>>", upload_dir)
-    os.makedirs(upload_dir, exist_ok=True)
-    
-    save_files: list[dict[str, str]] = []
+    folder_path  = foc.create_directories_per_user(user_id=str(user.id))
 
-    try:
-        for file in files:
-            print("file>>>>>>>> ", file.filename)
-            # print("file>>>>>>>> ", file.size)
-            print("file>>>>>>>> ", file.headers)
-            print("file>>>>>>>> ", file.content_type, file.content_type.split('/') if file.content_type else " ")
+    print("My folder path >>> ", folder_path)
 
-            if not file.filename:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail= "Uploaded File has no filename"
-                )
-            
-            filename = os.path.basename(file.filename)
-            save_path = os.path.join(upload_dir, filename)
 
-            with open(save_path, "wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
 
-            safe_name = os.path.basename(file.filename)
-            
-            save_files.append({
-                "file_name": safe_name,
-                "file_size": safe_name,
-                "mime_type": safe_name,
-                "stored_path": safe_name,
-                
-                })
-            
-        print(save_files)
-
-        return save_files
-    
-    except Exception as e:
-        print("Error >>>>> ", e)
-        traceback.print_exc()
-        raise HTTPException(
-            status_code=500,
-            detail="File upload failed"
-        )
     
 
     

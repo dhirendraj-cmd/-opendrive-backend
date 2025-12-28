@@ -142,24 +142,25 @@ def set_refresh_cookie(response: Response, token: str):
 
 def OS_home_directory():
     home = Path.home()
-    return home
+    return str(home)
 
 
-def create_storage(homeDir: str, content_type: str):
-    FILE_CATEGORY_MAP = {
-        "images": {
-            "jpg": "jpg",
-            "png": "png"
-        },
-        "media": {
-            "video": "video",
-            "audio": "audio",
-        },
-        "application": {
-            "pdf": "pdf",
-            "zip": "zip"
-        }
-    }
+
+# def create_storage(homeDir: str, content_type: str):
+#     FILE_CATEGORY_MAP = {
+#         "images": {
+#             "jpg": "jpg",
+#             "png": "png"
+#         },
+#         "media": {
+#             "video": "video",
+#             "audio": "audio",
+#         },
+#         "application": {
+#             "pdf": "pdf",
+#             "zip": "zip"
+#         }
+#     }
 
     
 
