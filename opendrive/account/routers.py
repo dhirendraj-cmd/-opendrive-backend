@@ -33,7 +33,6 @@ def register_user(session: SessionDependency, user: UserCreate):
 def login_user(response: Response, session: SessionDependency, form_data: LoginInputSchema):
     user = authenticate_user(session, form_data.username, form_data.password)
     if not user:
-        # print("USER INCALID>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials!")
     # user has entered correct username and paswword so token creation will start from here
     tokens = create_tokens(session, user)

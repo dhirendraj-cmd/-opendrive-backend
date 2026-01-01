@@ -1,8 +1,9 @@
 # inbuilt imports
 import os
 # import shutil, traceback
-from typing import Annotated
 from sqlmodel import select
+from typing import Annotated, Dict, List
+from collections import defaultdict
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status, UploadFile, File
 
@@ -68,6 +69,7 @@ def get_current_user(session: SessionDependency, token: Annotated[str, Depends(o
 
 #     return file_data
 
+# Uploaded Files>>>>>  [UploadFile(filename='pidrive (online-video-cutter.com).mp4', size=13258082, headers=Headers({'content-disposition': 'form-data; name="files"; filename="pidrive (online-video-cutter.com).mp4"', 'content-type': 'video/mp4'})), UploadFile(filename='pidrive.mp4', size=69820031, headers=Headers({'content-disposition': 'form-data; name="files"; filename="pidrive.mp4"', 'content-type': 'video/mp4'}))] 
 
 
 
@@ -81,11 +83,25 @@ def upload_file_loggedin_user(files: Annotated[list[UploadFile], File()], sessio
         )
 
     user = get_current_user(session=session, token=token)
-    print("user.id>>>>>> ", user.id)
-
-    folder_path  = foc.create_directories_per_user(user_id=str(user.id))
-
+    folder_key = foc.generate_folder_key()
+    folder_path  = foc.create_directories_per_user(user_id=str(user.id), parent_folder_key="", display_name="something")
     print("My folder path >>> ", folder_path)
+    print("Uploaded Files>>>>> ", files, type(files))
+
+    file_data: Dict[str, List[str]] = defaultdict(list)
+
+    # for file in files:
+    #     print(file.filename, file.size, file.content_type)
+    #     if file.filename is not None:
+    #         file_data['file_name'].append(file.filename)
+    #     if file.size is not None:
+    #         file_data['file_size'].append(file.size)
+    #     if file.content_type is not None:
+    #         file_data['mime_type'].append(file.content_type)
+    #         # file_data['stored_path'] = file.filename
+
+    # print(file_data) 
+
 
 
 
