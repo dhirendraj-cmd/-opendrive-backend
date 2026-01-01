@@ -19,18 +19,16 @@ if TYPE_CHECKING:
 class Folder(SQLModel, table=True):
     id: int = Field(primary_key=True, default=None)
     folder_key: str = Field(unique=True, index=True)
-    display_name: str = Field(default="Pi Drive")
+    parent_folder_key: Optional[str] = Field(default=None, foreign_key="folder.folder_key", index=True)
+    display_name: str
     user_id: int = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
-    created_at: datetime = Field(default=now_utc)
-    updated_at: datetime = Field(default=now_utc)
+    created_at: datetime = Field(default_factory=now_utc)
+    updated_at: datetime = Field(default_factory=now_utc)
 
     # back populates
     user: Optional["User"] = Relationship(back_populates="folders")
     files: List["FileDataToBeStored"] = Relationship(back_populates="folder")
     
-    
-
-
 
 class FileDataToBeStored(FileDataSchema, table=True):
     id: int = Field(primary_key=True, default=None)

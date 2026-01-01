@@ -1,7 +1,13 @@
+import os
+import secrets
 from sqlmodel import Session, select
 from fastapi import HTTPException, status
 from opendrive.helpers.helper import hash_password, verify_password
 from opendrive.account.models import User, UserCreate
+from opendrive.uploaders.file_models import Folder
+from opendrive.helpers.folder_creations import FolderCreations
+
+foc = FolderCreations()
 
 
 def create_user(session: Session, user: UserCreate):
@@ -35,6 +41,22 @@ def create_user(session: Session, user: UserCreate):
     session.add(new_user)
     session.commit()
     session.refresh(new_user)
+
+    root_folder = Folder(
+        folder_key="fo_"+str(secrets.token_urlsafe(8)),
+        parent_folder_key=None,
+        display_name="PiDrive",
+        user_id=new_user.id
+    )
+
+    session.add(root_folder)
+    session.commit()
+    session.refresh(root_folder)
+
+    root_path = foc.create_root_dir_per_user(user_id=str(new_user.id), parent_folder_key=root_folder.parent_folder_key, display_name=root_folder.display_name, folder_key=root_folder.folder_key)
+
+    print("complete path is ", root_path)
+
     return new_user
     
 
