@@ -1,4 +1,3 @@
-import os
 import secrets
 from sqlmodel import Session, select
 from fastapi import HTTPException, status

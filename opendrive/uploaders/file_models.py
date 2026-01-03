@@ -5,14 +5,9 @@ from .upload_schemas import FileDataSchema
 
 
 # builtins imports
-from typing import Optional, TYPE_CHECKING, List
+from typing import Optional, List
 from datetime import datetime
 from sqlmodel import Field, Relationship, SQLModel
-
-
-
-if TYPE_CHECKING:
-    from opendrive.account.models import User
 
 
 

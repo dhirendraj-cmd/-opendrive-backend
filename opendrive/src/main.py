@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import opendrive.db.intermediate_models
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 

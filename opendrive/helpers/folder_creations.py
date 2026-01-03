@@ -17,7 +17,7 @@ class FolderCreations:
         return root_path
     
 
-    def create_folders(self, user_id: str, parent_folder_key: str | None, display_name: str, folder_key: str):
+    def create_upload_dir_per_user(self, user_id: str, parent_folder_key: str | None, display_name: str, folder_key: str):
         pass
 
 
