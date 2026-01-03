@@ -1,9 +1,8 @@
 # inbuilt imports
 import os
-# import shutil, traceback
 from sqlmodel import select
-from typing import Annotated, Dict, List
 from collections import defaultdict
+from typing import Annotated, Dict, List
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, status, UploadFile, File
 
@@ -11,11 +10,13 @@ from fastapi import Depends, HTTPException, status, UploadFile, File
 # custom import
 from opendrive.helpers.helper import decode_token
 from opendrive.db.config import SessionDependency
-from opendrive.account.models import User
-# from opendrive.uploaders.file_models import FileDataToBeStored
 from opendrive.helpers.helper import OS_home_directory
-# from opendrive.helpers.file_creations import FileCreation
 from opendrive.helpers.folder_creations import FolderCreations
+
+from opendrive.account.models import User
+from opendrive.uploaders.file_models import Folder, FileDataToBeStored
+
+
 
 foc = FolderCreations()
 
@@ -23,11 +24,6 @@ foc = FolderCreations()
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="/account/login/")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 home = OS_home_directory()
-
-# def get_all_user(session: SessionDependency):
-#     all_users = session.exec(select(User)).all()
-#     return all_users
-
     
 
 def get_current_user(session: SessionDependency, token: Annotated[str, Depends(oauth2_bearer)]):
@@ -52,6 +48,9 @@ def get_current_user(session: SessionDependency, token: Annotated[str, Depends(o
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found!")
     
     return user
+
+
+# def get_user_root_folder(session: SessionDependency, user: User)
 
 
 # def save_file_data_in_db(db: SessionDependency, file_name: str, file_size: int, mime_type: str, stored_path: str, user_id: int):
@@ -83,24 +82,25 @@ def upload_file_loggedin_user(files: Annotated[list[UploadFile], File()], sessio
         )
 
     user = get_current_user(session=session, token=token)
-    folder_key = foc.generate_folder_key()
-    folder_path  = foc.create_directories_per_user(user_id=str(user.id), parent_folder_key="", display_name="something")
-    print("My folder path >>> ", folder_path)
-    print("Uploaded Files>>>>> ", files, type(files))
+    
+    stmt = select(Folder).where(user.id == Folder.user_id)
+    folder_data = session.exec(stmt).first()
+
+    print("My folder data>>>>>>> ", folder_data)
 
     file_data: Dict[str, List[str]] = defaultdict(list)
 
-    # for file in files:
-    #     print(file.filename, file.size, file.content_type)
-    #     if file.filename is not None:
-    #         file_data['file_name'].append(file.filename)
-    #     if file.size is not None:
-    #         file_data['file_size'].append(file.size)
-    #     if file.content_type is not None:
-    #         file_data['mime_type'].append(file.content_type)
-    #         # file_data['stored_path'] = file.filename
+    for file in files:
+        print(file.filename, file.size, file.content_type)
+        if file.filename is not None:
+            file_data['file_name'].append(file.filename)
+        if file.size is not None:
+            file_data['file_size'].append(str(file.size))
+        if file.content_type is not None:
+            file_data['mime_type'].append(file.content_type)
+            # file_data['stored_path'] = file.filename
 
-    # print(file_data) 
+    print(file_data) 
 
 
 
