@@ -1,5 +1,6 @@
 # inbuilt imports
 import os
+import shutil
 from sqlmodel import select
 from collections import defaultdict
 from typing import Annotated, Dict, List
@@ -68,8 +69,6 @@ def get_current_user(session: SessionDependency, token: Annotated[str, Depends(o
 
 #     return file_data
 
-# Uploaded Files>>>>>  [UploadFile(filename='pidrive (online-video-cutter.com).mp4', size=13258082, headers=Headers({'content-disposition': 'form-data; name="files"; filename="pidrive (online-video-cutter.com).mp4"', 'content-type': 'video/mp4'})), UploadFile(filename='pidrive.mp4', size=69820031, headers=Headers({'content-disposition': 'form-data; name="files"; filename="pidrive.mp4"', 'content-type': 'video/mp4'}))] 
-
 
 
 def upload_file_loggedin_user(files: Annotated[list[UploadFile], File()], session: SessionDependency, token: Annotated[str, Depends(oauth2_bearer)]):
@@ -88,27 +87,10 @@ def upload_file_loggedin_user(files: Annotated[list[UploadFile], File()], sessio
 
     print("My folder data>>>>>>> ", folder_data, type(folder_data))
 
-    file_data: Dict[str, List[str]] = defaultdict(list)
-
-    if folder_data:
-        user_id = str(folder_data.user_id)
-        file_data['user_id'].append(user_id)
-        file_data['folder_key'].append(folder_data.folder_key)
-        file_data['display_name'].append(folder_data.display_name)
-
-
-    # for file in files:
-    #     print(file.filename, file.size, file.content_type)
-    #     if file.filename is not None:
-    #         file_data['file_name'].append(file.filename)
-    #     if file.size is not None:
-    #         file_data['file_size'].append(str(file.size))
-    #     if file.content_type is not None:
-    #         file_data['mime_type'].append(file.content_type)
-            # file_data['stored_path'] = file.filename
-
     parent_folder_type = ""
     child_folder_type = ""
+
+    file_data: Dict[str, List[str]] = defaultdict(list)
 
     for file in files:
         if file.filename is not None:
@@ -117,12 +99,33 @@ def upload_file_loggedin_user(files: Annotated[list[UploadFile], File()], sessio
             parent_folder_type = file.content_type.split('/')[0]
             child_folder_type = file.content_type.split('/')[1]
             file_data['mime_type'].append(file.content_type)
+            file_data['parent_folder_type'].append(parent_folder_type)
+            file_data['child_folder_type'].append(child_folder_type)
 
-    print(parent_folder_type, child_folder_type)
-    per_user_upload = foc.create_upload_dir_per_user(user_id=str(folder_data.user_id), folder_key=folder_data.folder_key, display_name=folder_data.display_name, parent_folder_type=parent_folder_type, child_folder_type=child_folder_type)
+        if file.size is not None:
+            file_data['size'].append(str(file.size))
 
+        # folder data check
+        if folder_data:
+            user_id = str(folder_data.user_id)
+            file_data['user_id'].append(user_id)
+            file_data['folder_key'].append(folder_data.folder_key)
+            file_data['display_name'].append(folder_data.display_name)
 
-    print("file_data>>>>>>>>>>>>>>>>> ", file_data)
+            per_user_upload = foc.create_upload_dir_per_user(user_id=str(folder_data.user_id), folder_key=folder_data.folder_key, display_name=folder_data.display_name, parent_folder_type=parent_folder_type, child_folder_type=child_folder_type)
+
+            print("per_user_upload>>>>>>> ", per_user_upload)
+            
+            storing_path = os.path.join(per_user_upload, file.filename)
+
+            file_data['stored_path'].append(storing_path)
+
+            try:
+                with open(storing_path, "wb+") as file_obj:
+                    shutil.copyfileobj(file.filename, file_obj)
+            except Exception as err:
+                print(f"Error is >>. ", err)
+
 
 
 

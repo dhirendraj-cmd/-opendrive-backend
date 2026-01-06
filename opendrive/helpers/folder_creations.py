@@ -38,8 +38,12 @@ class FolderCreations:
             print("final Upload path >>>> ", upload_path)
 
             os.makedirs(upload_path, exist_ok=True)
+
+            return upload_path
         except Exception as err:
+            print(f"Error is: {err}")
             return err
+        
 
 
         
