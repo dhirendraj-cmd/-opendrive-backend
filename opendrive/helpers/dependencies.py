@@ -1,6 +1,7 @@
 # inbuilt imports
 import os
 import shutil
+import traceback
 from sqlmodel import select
 from collections import defaultdict
 from typing import Annotated, Dict, List
@@ -54,24 +55,30 @@ def get_current_user(session: SessionDependency, token: Annotated[str, Depends(o
 # def get_user_root_folder(session: SessionDependency, user: User)
 
 
-# def save_file_data_in_db(db: SessionDependency, file_name: str, file_size: int, mime_type: str, stored_path: str, user_id: int):
-#     file_data = FileDataToBeStored(
-#         file_name=file_name,
-#         file_size=file_size,
-#         mime_type=mime_type,
-#         stored_path=stored_path,
-#         user_id=user_id
-#     )
+def save_file_data_in_db(db: SessionDependency, file_name: str, file_size: int, mime_type: str, stored_path: str, user_id: int, folder_id: int):
+    saved_data = FileDataToBeStored(
+        file_name=file_name,
+        file_size=file_size,
+        mime_type=mime_type,
+        stored_path=stored_path,
+        user_id=user_id,
+        folder_id=folder_id
+    )
 
-#     db.add(file_data)
-#     db.commit()
-#     db.refresh(file_data)
+    db.add(saved_data)
+    db.commit()
+    db.refresh(saved_data)
 
-#     return file_data
+    return saved_data
 
 
 
 def upload_file_loggedin_user(files: Annotated[list[UploadFile], File()], session: SessionDependency, token: Annotated[str, Depends(oauth2_bearer)]):
+    parent_folder_type = ""
+    child_folder_type = ""
+    storing_path: str = ""
+
+    # token retrieval
     payload = decode_token(token=token)
     
     if not payload:
@@ -85,22 +92,18 @@ def upload_file_loggedin_user(files: Annotated[list[UploadFile], File()], sessio
     stmt = select(Folder).where(user.id == Folder.user_id)
     folder_data = session.exec(stmt).first()
 
-    print("My folder data>>>>>>> ", folder_data, type(folder_data))
-
-    parent_folder_type = ""
-    child_folder_type = ""
+    # Dictionary to track results for all files
+    all_file_results: Dict[str, List[str]] = defaultdict(list)
 
     file_data: Dict[str, List[str]] = defaultdict(list)
 
     for file in files:
-        if file.filename is not None:
-            file_data['file_name'].append(file.filename)
+        if not file.filename:
+            continue
+        
         if file.content_type is not None:
             parent_folder_type = file.content_type.split('/')[0]
             child_folder_type = file.content_type.split('/')[1]
-            file_data['mime_type'].append(file.content_type)
-            file_data['parent_folder_type'].append(parent_folder_type)
-            file_data['child_folder_type'].append(child_folder_type)
 
         if file.size is not None:
             file_data['size'].append(str(file.size))
@@ -122,9 +125,29 @@ def upload_file_loggedin_user(files: Annotated[list[UploadFile], File()], sessio
 
             try:
                 with open(storing_path, "wb+") as file_obj:
-                    shutil.copyfileobj(file.filename, file_obj)
+                    file.file.seek(0)
+                    shutil.copyfileobj(file.file, file_obj)
+                
+                # save file data in db
+                save_file_data_in_db(
+                    db=session,
+                    file_name=file.filename, 
+                    file_size=file.size, 
+                    mime_type=str(file.content_type), 
+                    stored_path=str(storing_path), 
+                    user_id=user.id,
+                    folder_id=folder_data.id
+                )
+                
+                # all_file_results.append({"filename": file.filename, "status": "success"})
+                all_file_results['filename'].append(file.filename)
+                all_file_results['status'].append("success")
+
             except Exception as err:
                 print(f"Error is >>. ", err)
+                traceback.print_exc()
+
+    return {"uploaded_files": all_file_results}
 
 
 
