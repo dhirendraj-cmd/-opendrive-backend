@@ -15,7 +15,7 @@ class DriveItemSchema(BaseModel):
     folder_key: Optional[str] = None
     file_size: Optional[int] = None
     mime_type: Optional[str] = None
-    parent_folder_key: Optional[str] = None
+    # parent_folder_key: Optional[str] = None
 
 
 class DriveItemResponse(DriveItemSchema):
